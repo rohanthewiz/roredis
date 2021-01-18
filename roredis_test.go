@@ -6,9 +6,10 @@ const testKey = "tkey"
 const testBogusKey = "bogusKey"
 const testVal1 = "abc123"
 
+// A Redis instance is required for the tests here
 var testCfg = RedisCfg{
 	Host: "localhost",
-	DB: 0,
+	DB:   0,
 }
 
 func TestInitRedis(t *testing.T) {
@@ -34,6 +35,7 @@ func TestSet(t *testing.T) {
 
 func TestGetExistent(t *testing.T) {
 	InitRedis(testCfg)
+	TestSet(t)
 	ret, err := Get(testKey)
 	if err != nil {
 		t.Error("Get failed", err)
