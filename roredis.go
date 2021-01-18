@@ -71,6 +71,43 @@ func Get(key string) (val string, err error) {
 	return val, err
 }
 
+// TODO: Add Tests
+func GetBytes(key string) (byts []byte, err error) {
+	if rclient == nil {
+		return byts, errors.New("redis client not initialized - call InitRedis first")
+	}
+
+	byts, err = rclient.Get(context.Background(), key).Bytes()
+	if err == redis.Nil {
+		return byts, errors.New("Key does not exist")
+	}
+
+	return byts, err
+}
+
+// Return keys matching a pattern
+func Scan(pattern string) (keys []string, err error) {
+	if rclient == nil {
+		return keys, errors.New("redis client not initialized - call InitRedis first")
+	}
+
+	var cursor uint64
+	var errs []error
+	for {
+		var batchKeys []string
+		batchKeys, cursor, err = rclient.Scan(context.Background(), cursor, pattern, 15).Result()
+		if err != nil {
+			errs = append(errs, err)
+		}
+		keys = append(keys, batchKeys...)
+		if cursor == 0 {
+			break
+		}
+	}
+
+	return
+}
+
 func Del(key string) error {
 	if rclient == nil {
 		return errors.New("redis client not initialized - call InitRedis first")

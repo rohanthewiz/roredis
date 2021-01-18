@@ -5,10 +5,11 @@ import (
 	"time"
 )
 
-const testKey = "tkey"
+const testValsDuration = 20 * time.Second
+const testKey = "testKey"
 const testBogusKey = "bogusKey"
 const testVal1 = "abc123"
-const testKeyDB1 = "tkeyDB1"
+const testKeyDB1 = "testKeyDB1"
 const testVal1DB1 = "abc123DB1"
 
 // A Redis instance is required for the tests here
@@ -32,7 +33,7 @@ func TestPing(t *testing.T) {
 
 func TestSet(t *testing.T) {
 	InitRedis(testCfg)
-	err := Set(testKey, testVal1, 20*time.Second)
+	err := Set(testKey, testVal1, testValsDuration)
 	if err != nil {
 		t.Error("Set failed", err)
 	}
@@ -68,7 +69,7 @@ func TestDel(t *testing.T) {
 	}
 }
 
-// Test Second DB
+// ---- Test Second DB ----
 
 // A Redis instance is required for the tests here
 var testCfgDB1 = RedisCfg{
@@ -91,7 +92,7 @@ func TestPingDB1(t *testing.T) {
 
 func TestSetDB1(t *testing.T) {
 	InitRedis(testCfgDB1)
-	err := Set(testKeyDB1, testVal1DB1, 0)
+	err := Set(testKeyDB1, testVal1DB1, testValsDuration)
 	if err != nil {
 		t.Error("Set failed", err)
 	}
@@ -116,5 +117,26 @@ func TestGetNonExistentDB1(t *testing.T) {
 	if err != nil {
 		t.Log("Get failed for non-existent key", testKey, err)
 		return
+	}
+}
+
+// ---- Test Scan ---
+func TestScanKeys(t *testing.T) {
+	InitRedis(testCfg)
+
+	err := Set("roKey1", "roVal1", testValsDuration)
+	if err != nil {
+		t.Error("Set failed", "roKey1", err)
+	}
+	err = Set("roKey2", "roVal2", testValsDuration)
+	if err != nil {
+		t.Error("Set failed", "roKey2", err)
+	}
+
+	keys, err := Scan("roKey*")
+	if err != nil {
+		t.Error("Scan failed")
+	} else {
+		t.Log(len(keys), "keys found")
 	}
 }
