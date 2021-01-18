@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var rclient *redis.Client
+var RClient *redis.Client
 
 const defaultPort = "6379"
 const defaultHost = "localhost"
@@ -29,7 +29,7 @@ func InitRedis(cfg RedisCfg) {
 		port = defaultPort
 	}
 
-	rclient = redis.NewClient(&redis.Options{
+	RClient = redis.NewClient(&redis.Options{
 		Addr:     host + ":" + port,
 		Password: cfg.Password,
 		DB:       cfg.DB, // 0 happens to be the default DB
@@ -37,10 +37,10 @@ func InitRedis(cfg RedisCfg) {
 }
 
 func Ping() string {
-	if rclient == nil {
+	if RClient == nil {
 		return ""
 	}
-	pong, err := rclient.Ping(context.Background()).Result()
+	pong, err := RClient.Ping(context.TODO()).Result()
 	if err != nil {
 		fmt.Println("Redis ping failed")
 		return ""
@@ -51,18 +51,18 @@ func Ping() string {
 
 // Set expiration time to zero for no expiration
 func Set(key, value string, expiration time.Duration) error {
-	if rclient == nil {
+	if RClient == nil {
 		return errors.New("redis client not initialized - call InitRedis first")
 	}
-	return rclient.Set(context.Background(), key, value, expiration).Err()
+	return RClient.Set(context.TODO(), key, value, expiration).Err()
 }
 
 func Get(key string) (val string, err error) {
-	if rclient == nil {
+	if RClient == nil {
 		return val, errors.New("redis client not initialized - call InitRedis first")
 	}
 
-	val, err = rclient.Get(context.Background(), key).Result()
+	val, err = RClient.Get(context.TODO(), key).Result()
 	if err == redis.Nil {
 		return "", errors.New("Key does not exist")
 	} else if err != nil {
@@ -73,11 +73,11 @@ func Get(key string) (val string, err error) {
 
 // TODO: Add Tests
 func GetBytes(key string) (byts []byte, err error) {
-	if rclient == nil {
+	if RClient == nil {
 		return byts, errors.New("redis client not initialized - call InitRedis first")
 	}
 
-	byts, err = rclient.Get(context.Background(), key).Bytes()
+	byts, err = RClient.Get(context.TODO(), key).Bytes()
 	if err == redis.Nil {
 		return byts, errors.New("Key does not exist")
 	}
@@ -87,7 +87,7 @@ func GetBytes(key string) (byts []byte, err error) {
 
 // Return keys matching a pattern
 func Scan(pattern string) (keys []string, err error) {
-	if rclient == nil {
+	if RClient == nil {
 		return keys, errors.New("redis client not initialized - call InitRedis first")
 	}
 
@@ -95,7 +95,7 @@ func Scan(pattern string) (keys []string, err error) {
 	var errs []error
 	for {
 		var batchKeys []string
-		batchKeys, cursor, err = rclient.Scan(context.Background(), cursor, pattern, 15).Result()
+		batchKeys, cursor, err = RClient.Scan(context.TODO(), cursor, pattern, 15).Result()
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -109,8 +109,8 @@ func Scan(pattern string) (keys []string, err error) {
 }
 
 func Del(key string) error {
-	if rclient == nil {
+	if RClient == nil {
 		return errors.New("redis client not initialized - call InitRedis first")
 	}
-	return rclient.Del(context.Background(), key).Err()
+	return RClient.Del(context.TODO(), key).Err()
 }

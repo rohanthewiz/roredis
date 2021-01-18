@@ -20,7 +20,7 @@ var testCfg = RedisCfg{
 
 func TestInitRedis(t *testing.T) {
 	InitRedis(testCfg)
-	if rclient == nil {
+	if RClient == nil {
 		t.Fatal("Failed to initialize Redis client")
 	}
 }
@@ -79,7 +79,7 @@ var testCfgDB1 = RedisCfg{
 
 func TestInitRedisDB1(t *testing.T) {
 	InitRedis(testCfgDB1)
-	if rclient == nil {
+	if RClient == nil {
 		t.Fatal("Failed to initialize Redis client")
 	}
 }
