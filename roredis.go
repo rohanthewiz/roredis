@@ -19,7 +19,7 @@ type RedisCfg struct {
 }
 
 // The internal redis client must be initialized before other functions called
-func InitRedis(cfg RedisCfg) {
+func InitRedis(cfg RedisCfg) *redis.Client {
 	var host, port string
 
 	if cfg.Host == "" {
@@ -34,6 +34,8 @@ func InitRedis(cfg RedisCfg) {
 		Password: cfg.Password,
 		DB:       cfg.DB, // 0 happens to be the default DB
 	})
+
+	return RClient
 }
 
 func Ping() string {
