@@ -31,44 +31,64 @@ func TestPing(t *testing.T) {
 	t.Log("Redis Ping returned", ret)
 }
 
-// TODO restore
-// func TestSet(t *testing.T) {
-// 	InitRedis(testCfg)
-// 	err := Set(testKey, testVal1, testValsDuration)
-// 	if err != nil {
-// 		t.Error("Set failed", err)
-// 	}
-// }
-//
-// func TestGetExistent(t *testing.T) {
-// 	InitRedis(testCfg)
-// 	TestSet(t)
-// 	ret, err := Get(testKey)
-// 	if err != nil {
-// 		t.Error("Get failed", err)
-// 		return
-// 	}
-// 	if ret != testVal1 {
-// 		t.Error("Get: returned value did not match Set value")
-// 	}
-// }
-//
-// func TestGetNonExistent(t *testing.T) {
-// 	InitRedis(testCfg)
-// 	_, err := Get(testBogusKey)
-// 	if err != nil {
-// 		t.Log("Get failed for non-existent key", err)
-// 		return
-// 	}
-// }
-//
-// func TestDel(t *testing.T) {
-// 	InitRedis(testCfg)
-// 	err := Del(testKey)
-// 	if err != nil {
-// 		t.Error("Delete failed", err)
-// 	}
-// }
+func TestSet(t *testing.T) {
+	rc := InitRedis(testCfg)
+	err := Set(rc, testKey, testVal1, testValsDuration)
+	if err != nil {
+		t.Error("Set failed", err)
+	}
+}
+
+func TestGetExistent(t *testing.T) {
+	rc := InitRedis(testCfg)
+	TestSet(t)
+	ret, err := Get(rc, testKey)
+	if err != nil {
+		t.Error("Get failed", err)
+		return
+	}
+	if ret != testVal1 {
+		t.Error("Get: returned value did not match Set value")
+	}
+}
+
+func TestGetNonExistent(t *testing.T) {
+	rc := InitRedis(testCfg)
+	_, err := Get(rc, testBogusKey)
+	if err != nil {
+		t.Log("Get failed for non-existent key", err)
+		return
+	}
+}
+
+func TestDel(t *testing.T) {
+	rc := InitRedis(testCfg)
+	err := Del(rc, testKey)
+	if err != nil {
+		t.Error("Delete failed", err)
+	}
+}
+
+// ---- Test Scan ---
+func TestScanKeys(t *testing.T) {
+	rc := InitRedis(testCfg)
+
+	err := Set(rc, "roKey1", "roVal1", testValsDuration)
+	if err != nil {
+		t.Error("Set failed", "roKey1", err)
+	}
+	err = Set(rc, "roKey2", "roVal2", testValsDuration)
+	if err != nil {
+		t.Error("Set failed", "roKey2", err)
+	}
+
+	keys, err := Scan(rc, "roKey*")
+	if err != nil {
+		t.Error("Scan failed")
+	} else {
+		t.Log(len(keys), "keys found")
+	}
+}
 
 // ---- Test Second DB ----
 
@@ -112,33 +132,11 @@ func TestGetExistentDB1(t *testing.T) {
 	}
 }
 
-// TODO - Re-enable below
-// func TestGetNonExistentDB1(t *testing.T) {
-// 	InitRedis(testCfgDB1)
-// 	_, err := Get(testKey) // We should not see the key from DB0
-// 	if err != nil {
-// 		t.Log("Get failed for non-existent key", testKey, err)
-// 		return
-// 	}
-// }
-//
-// // ---- Test Scan ---
-// func TestScanKeys(t *testing.T) {
-// 	InitRedis(testCfg)
-//
-// 	err := Set("roKey1", "roVal1", testValsDuration)
-// 	if err != nil {
-// 		t.Error("Set failed", "roKey1", err)
-// 	}
-// 	err = Set("roKey2", "roVal2", testValsDuration)
-// 	if err != nil {
-// 		t.Error("Set failed", "roKey2", err)
-// 	}
-//
-// 	keys, err := Scan("roKey*")
-// 	if err != nil {
-// 		t.Error("Scan failed")
-// 	} else {
-// 		t.Log(len(keys), "keys found")
-// 	}
-// }
+func TestGetNonExistentDB1(t *testing.T) {
+	rc := InitRedis(testCfgDB1)
+	_, err := Get(rc, testKey) // We should not see the key from DB0
+	if err != nil {
+		t.Log("Get failed for non-existent key", testKey, err)
+		return
+	}
+}
